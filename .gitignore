@@ -1,0 +1,4 @@
+TODO.txt
+*.log
+__pycache__/
+hosted/py_files/ignore/

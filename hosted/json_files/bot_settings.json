@@ -1,0 +1,62 @@
+{
+    "activities": [
+        {
+            "type": 0,
+            "name": "Chillissu",
+            "start": 0,
+            "end": null
+        },
+        {
+            "type": 1,
+            "name": "my room",
+            "url": "https://www.youtube.com/@TheLivingPepsi/videos",
+            "platform": "Youtube",
+            "game": "Roblox"
+        },
+        {
+            "type": 2,
+            "name": "to k-pop",
+            "state": null,
+            "details": null,
+            "start": null,
+            "end": null
+        },
+        {
+            "type": 3,
+            "name": "issu's latest video",
+            "state": null,
+            "details": null,
+            "start": null,
+            "end": null
+        },
+        {
+            "type": 4,
+            "name": "in phantom forces",
+            "state": null,
+            "details": null,
+            "start": null,
+            "end": null
+        }
+    ],
+
+    "allowed_mentions": {
+        "everyone": false,
+        "users": true,
+        "roles": false,
+        "replied_user": true
+    },
+
+    "command_prefix": [
+        "@"
+    ],
+
+    "description": "issu's personal multi-purpose discord bot with customized features and functions for servers",
+
+    "help_command": {
+        "default": true,
+        "command": {
+            "show_hidden": null,
+            "verify_checks": null
+        }
+    }
+}
