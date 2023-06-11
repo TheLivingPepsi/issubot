@@ -1,0 +1,38 @@
+[
+    {
+        "response": {
+            "status": 0,
+
+            "replies": {
+                "random": true,
+                "content":[
+                    "heyo!"
+                ]
+            },
+            "reactions": {
+                "random": false,
+                "emojis":[
+                    null
+                ]
+            },
+            "images": [
+                {
+                    "is_url": false,
+                    "path": null,
+                    "filename": null
+                }
+            ]
+        },
+
+        "trigger": {
+            "phrases": [
+                "hi!",
+                "hi",
+                "hello",
+                "hey"
+            ],
+            "wildcard": true,
+            "true_wildcard": false
+        }
+    }
+]

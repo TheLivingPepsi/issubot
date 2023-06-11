@@ -1,41 +1,29 @@
 {
     "activities": [
         {
-            "type": 0,
+            "type": "Playing",
             "name": "Chillissu",
             "start": 0,
             "end": null
         },
         {
-            "type": 1,
+            "type": "Streaming",
             "name": "my room",
             "url": "https://www.youtube.com/@TheLivingPepsi/videos",
             "platform": "Youtube",
             "game": "Roblox"
         },
         {
-            "type": 2,
-            "name": "to k-pop",
-            "state": null,
-            "details": null,
-            "start": null,
-            "end": null
+            "type": "Listening",
+            "name": "to k-pop"
         },
         {
-            "type": 3,
-            "name": "issu's latest video",
-            "state": null,
-            "details": null,
-            "start": null,
-            "end": null
+            "type": "Watching",
+            "name": "issu's latest video"
         },
         {
-            "type": 4,
-            "name": "in phantom forces",
-            "state": null,
-            "details": null,
-            "start": null,
-            "end": null
+            "type": "Competing",
+            "name": "in phantom forces"
         }
     ],
 
@@ -58,5 +46,7 @@
             "show_hidden": null,
             "verify_checks": null
         }
-    }
+    },
+    
+    "case_insensitive": true
 }
