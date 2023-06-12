@@ -5,7 +5,7 @@ import os
 import json
 import re
 import random
-from util import DIRS, craft_file, craft_files
+from handlers.utilities_handler import DIRS, craft_file, craft_files
 
 name = (os.path.basename(__file__)).replace(".py", "")
 

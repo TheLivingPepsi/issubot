@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 import json
 import random
-from util import craft_activity, craft_mentions
+from handlers.utilities_handler import craft_activity, craft_mentions
 
 
 class Bot(commands.Bot):
@@ -14,6 +14,7 @@ class Bot(commands.Bot):
         )
 
     async def setup_hook(self):
+        print("Launching [issu]bot...")
         asyncio.create_task(self.run_once_when_ready())
 
 

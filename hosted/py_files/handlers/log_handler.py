@@ -1,5 +1,5 @@
-import logging
-from util import DIRS
+import logging, logging.handlers
+from handlers.utilities_handler import DIRS
 
 
 def create_logging():

@@ -1,16 +1,15 @@
-from handlers.log_handler import create_logging
-from handlers.version_handler import check_version
+from handlers.utilities_handler import *
+from handlers import log_handler, version_handler, bot_handler
+
 import os
-from util import *
-from handlers.bot_handler import create_bot
 
 
 def main():
-    create_logging()
-    check_version()
+    log_handler.create_logging()
+    version_handler.check_version()
 
     token = os.environ["TOK_dcdbt"].replace('"', "")
-    bot = create_bot(DIRS["json"] + "\\bot_settings.json")
+    bot = bot_handler.create_bot(DIRS["json"] + "\\bot_settings.json")
 
     bot.run(token=token, log_handler=None)
 
