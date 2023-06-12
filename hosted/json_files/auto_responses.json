@@ -1,10 +1,7 @@
 [
     {
         "response": {
-            "status": 0,
-
             "replies": {
-                "random": true,
                 "content":[
                     "heyo!"
                 ]
@@ -16,11 +13,6 @@
                 ]
             },
             "images": [
-                {
-                    "is_url": false,
-                    "path": null,
-                    "filename": null
-                }
             ]
         },
 
@@ -31,8 +23,13 @@
                 "hello",
                 "hey"
             ],
-            "wildcard": true,
-            "true_wildcard": false
+            "wildcard": 1
+        },
+
+        "example_for_images": {
+            "is_url": false,
+            "path": null,
+            "filename": null
         }
     }
 ]
