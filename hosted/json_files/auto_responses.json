@@ -3,7 +3,7 @@
         "response": {
             "replies": {
                 "content":[
-                    "heyo!"
+                    "hello world!"
                 ]
             },
             "reactions": {
@@ -18,12 +18,9 @@
 
         "trigger": {
             "phrases": [
-                "hi!",
-                "hi",
-                "hello",
-                "hey"
+                "TEMP_hello"
             ],
-            "wildcard": 1
+            "wildcard": 0
         },
 
         "example_for_images": {

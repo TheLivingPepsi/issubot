@@ -3,19 +3,42 @@ from discord.ext import commands
 import asyncio
 import json
 import random
-from handlers.utilities_handler import craft_activity, craft_mentions
+from handlers.utilities_handler import craft_activity, craft_mentions, DIRS
+import os
+import logging
 
 
-class Bot(commands.Bot):
+class CustomBot(commands.Bot):
+    def error_handler(self, task: asyncio.Task):
+        exc = task.exception()
+        if exc:
+            logging.error("ready task failed!", exc_info=exc)
+
     async def run_once_when_ready(self):
         await self.wait_until_ready()
+        files = [
+            f
+            for f in os.listdir(DIRS["py"] + "\\extensions")
+            if os.path.isfile(os.path.join(DIRS["py"] + "\\extensions", f))
+        ]
+        for file in files:
+            try:
+                await self.load_extension(
+                    f"extensions.{file.replace('.py', '')}"
+                )  # can we switch this back to nested strings in python 3.12?
+            except commands.ExtensionNotFound:
+                print(f"> Could not load extensions.{file.replace('.py', '')}!")
+            except commands.ExtensionAlreadyLoaded:
+                print(f"> extensions.{file.replace('.py', '')} was already loaded.")
+
         print(
             f"{self.user.name}#{self.user.discriminator} ({self.user.id}) is now connected and ready!"
         )
 
     async def setup_hook(self):
         print("Launching [issu]bot...")
-        asyncio.create_task(self.run_once_when_ready())
+        runner = asyncio.create_task(self.run_once_when_ready())
+        runner.add_done_callback(self.error_handler)
 
 
 def check_prefixes(prefixes: list | None = ["@"]):
@@ -58,7 +81,7 @@ def craft_help_command(properties: dict | None = None):
         return commands.DefaultHelpCommand()
 
 
-def create_bot(filepath: str | None = "default"):
+def create_bot(filepath: str | None = "default", logger: logging.Logger | None = None):
     set_dict = {
         "activity": None,
         "allowed_mentions": discord.AllowedMentions.none(),
@@ -81,7 +104,7 @@ def create_bot(filepath: str | None = "default"):
         set_dict["help_command"] = craft_help_command(settings_file["help_command"])
         set_dict["case_insensitive"] = settings_file["case_insensitive"]
 
-    return Bot(
+    return CustomBot(
         activity=set_dict["activity"],
         allowed_mentions=set_dict["allowed_mentions"],
         command_prefix=set_dict["command_prefix"],

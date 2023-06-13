@@ -43,6 +43,9 @@ class Cog(commands.Cog, name=name):
             d_file = await craft_file(response["response"]["images"][0])
         elif len(response["response"]["images"]) > 1:
             d_files = await craft_files(response["response"]["images"])
+        else:
+            d_file = None
+            d_files = None
 
         await message.reply(content=content, file=d_file, files=d_files)
 
@@ -78,7 +81,8 @@ class Cog(commands.Cog, name=name):
                     if respond:
                         # add embed support?
                         # add channel filters so that it won't write messages/images in certain channels
-                        self.create_response(response, message)
+                        await self.create_response(response, message)
+                        break
 
         except:
             # log
@@ -87,9 +91,9 @@ class Cog(commands.Cog, name=name):
 
 async def setup(bot):
     await bot.add_cog(Cog(bot), override=True)
-    print(f'Loading cog "{name}".')
+    print(f'> Loading cog "extensions.{name}"...')
 
 
 async def teardown(bot):
     await bot.remove_cog(name)
-    print(f'Unloading cog "{name}".')
+    print(f'> Unloading cog "extensions.{name}"...')
