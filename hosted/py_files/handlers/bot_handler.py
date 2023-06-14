@@ -14,8 +14,8 @@ class CustomBot(commands.Bot):
     def error_handler(self, task: asyncio.Task):
         exc = task.exception()
         if exc:
-            logger.error("Error occurred!", exc_info=exc)
             print(f"Error occurred! Error: {exc}")
+            logger.error("Error occurred!", exc_info=exc)
 
     async def run_once_when_ready(self):
         await self.wait_until_ready()
@@ -95,7 +95,7 @@ def create_bot(filepath: str | None = "default"):
     }
 
     if filepath != "default":
-        settings_file = json.load(open(filepath))
+        settings_file = json.load(open(filepath, encoding="utf8"))
 
         set_dict["activity"] = craft_activity(
             random.choice(settings_file["activities"])  # FIX STREAMING STATUS
@@ -106,6 +106,8 @@ def create_bot(filepath: str | None = "default"):
         set_dict["help_command"] = craft_help_command(settings_file["help_command"])
         set_dict["case_insensitive"] = settings_file["case_insensitive"]
 
+        owner_id = os.environ["OWNER_ID"].replace('"', "")
+
     return CustomBot(
         activity=set_dict["activity"],
         allowed_mentions=set_dict["allowed_mentions"],
@@ -114,4 +116,5 @@ def create_bot(filepath: str | None = "default"):
         help_command=set_dict["help_command"],
         intents=set_dict["intents"],
         case_insensitive=set_dict["case_insensitive"],
+        owner_id = owner_id
     )

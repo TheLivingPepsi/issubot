@@ -2,18 +2,30 @@ import discord
 from discord.ext import commands
 import os
 import json
-import re
 import random
+import logging
 from handlers.utilities_handler import DIRS, craft_file, craft_files
 
 name = (os.path.basename(__file__)).replace(".py", "")
+logger = logging.getLogger("discord")
 
 
 class Cog(commands.Cog, name=name):
     def __init__(self, bot):
         self.bot = bot
-        self.responses = json.load(open(DIRS["json"] + "\\auto_responses.json"))
-        self.punctuation = r".,:;/-@\"\'!?–—•₽¥€¢£₩§”“„»«…¿¡\\’‘`" + r"\$\(\)_"
+        self.responses = json.load(
+            open(DIRS["json"] + "\\auto_responses.json", encoding="utf8")
+        )
+        self.punctuation = ".,:;/-@\"'!?\–\—•₽¥€¢£₩§”“„»«…¿¡\\’‘`$()_"
+
+    async def cog_command_error(self, ctx, error):
+        print(
+            f"An error occurred in extensions.{name} / #{ctx.channel.name} ({ctx.channel.id}) | {error}\nMessage content:\n{ctx.message.content}"
+        )
+        logging.error(
+            f"An error occurred in extensions.{name} / #{ctx.channel.name} ({ctx.channel.id}) @ {ctx.message.jump_url}!",
+            exc_info=error,
+        )
 
     async def create_response(self, response: dict, message: discord.Message):
         response_settings = response["response"]
@@ -49,9 +61,10 @@ class Cog(commands.Cog, name=name):
 
         await message.reply(content=content, file=d_file, files=d_files)
 
+    @commands.is_owner()
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot or message.author.id != self.bot.owner.id: # Will enable for others when opt-out is enabled
+        if message.author.bot:
             return
 
         for response in self.responses:
@@ -59,12 +72,20 @@ class Cog(commands.Cog, name=name):
                 phrase = trigger["phrase"]
 
                 if any(punc in phrase for punc in self.punctuation):
-                    msg = message.clean_content
+                    msg = message.clean_content.replace("\n", " ")
                     split = message.clean_content.split()
                 else:
-                    msg = re.sub(rf"[{self.punctuation}]", "", message.clean_content)
+                    msg = "".join(
+                        c
+                        for c in message.clean_content.replace("\n", " ")
+                        if c.isalpha() or c.isnumeric() or c.isspace()
+                    )
                     split = [
-                        re.sub(rf"[{self.punctuation}]", "", word)
+                        "".join(
+                            c
+                            for c in word
+                            if c.isalpha() or c.isnumeric() or c.isspace()
+                        )
                         for word in message.clean_content.split()
                     ]
 
@@ -77,9 +98,11 @@ class Cog(commands.Cog, name=name):
                     case 0:
                         respond = phrase == msg
                     case 1:
-                        respond = phrase in msg
-                    case 2:
                         respond = phrase in split
+                    case 2:
+                        respond = phrase in msg
+                    case _:
+                        respond = False
 
                 if respond:
                     # add embed support?
