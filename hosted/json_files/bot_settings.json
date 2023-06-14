@@ -2,16 +2,12 @@
     "activities": [
         {
             "type": "Playing",
-            "name": "Chillissu",
-            "start": 0,
-            "end": null
+            "name": "Chillissu"
         },
         {
             "type": "Streaming",
             "name": "my room",
-            "url": "https://www.youtube.com/@TheLivingPepsi/videos",
-            "platform": "Youtube",
-            "game": "Roblox"
+            "url": "https://www.twitch.tv/arcticslayertv"
         },
         {
             "type": "Listening",

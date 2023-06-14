@@ -7,12 +7,15 @@ from handlers.utilities_handler import craft_activity, craft_mentions, DIRS
 import os
 import logging
 
+logger = logging.getLogger("discord")
+
 
 class CustomBot(commands.Bot):
     def error_handler(self, task: asyncio.Task):
         exc = task.exception()
         if exc:
-            logging.error("ready task failed!", exc_info=exc)
+            logger.error("Error occurred!", exc_info=exc)
+            print(f"Error occurred! Error: {exc}")
 
     async def run_once_when_ready(self):
         await self.wait_until_ready()
@@ -26,10 +29,9 @@ class CustomBot(commands.Bot):
                 await self.load_extension(
                     f"extensions.{file.replace('.py', '')}"
                 )  # can we switch this back to nested strings in python 3.12?
-            except commands.ExtensionNotFound:
-                print(f"> Could not load extensions.{file.replace('.py', '')}!")
-            except commands.ExtensionAlreadyLoaded:
-                print(f"> extensions.{file.replace('.py', '')} was already loaded.")
+            except Exception as exc:
+                logger.error(f"extensions.{file.replace('.py', '')} failed to load!", exc_info=exc)
+                print(f"> extensions.{file.replace('.py', '')} failed to load: {exc}")
 
         print(
             f"{self.user.name}#{self.user.discriminator} ({self.user.id}) is now connected and ready!"
@@ -81,7 +83,7 @@ def craft_help_command(properties: dict | None = None):
         return commands.DefaultHelpCommand()
 
 
-def create_bot(filepath: str | None = "default", logger: logging.Logger | None = None):
+def create_bot(filepath: str | None = "default"):
     set_dict = {
         "activity": None,
         "allowed_mentions": discord.AllowedMentions.none(),
@@ -96,7 +98,7 @@ def create_bot(filepath: str | None = "default", logger: logging.Logger | None =
         settings_file = json.load(open(filepath))
 
         set_dict["activity"] = craft_activity(
-            random.choice(settings_file["activities"])
+            random.choice(settings_file["activities"])  # FIX STREAMING STATUS
         )
         set_dict["allowed_mentions"] = craft_mentions(settings_file["allowed_mentions"])
         set_dict["command_prefix"] = check_prefixes(settings_file["command_prefix"])

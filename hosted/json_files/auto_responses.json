@@ -1,32 +1,68 @@
 [
-    {
-        "response": {
-            "replies": {
-                "content":[
-                    "hello world!"
-                ]
-            },
-            "reactions": {
-                "random": false,
-                "emojis":[
-                    null
-                ]
-            },
-            "images": [
-            ]
-        },
+  {
+    "response": {
+      "replies": {
+        "content": ["Hello there.", "hi!", "top o' the mornin' to ya!"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null]
+    },
 
-        "trigger": {
-            "phrases": [
-                "TEMP_hello"
-            ],
-            "wildcard": 0
-        },
+    "triggers": [
+      {
+        "phrase": "hello",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ],
 
-        "example_for_images": {
-            "is_url": false,
-            "path": null,
-            "filename": null
-        }
+    "example_for_images": {
+      "is_url": false,
+      "path": null,
+      "filename": null
     }
+  },
+  {
+    "response": {
+      "replies": {
+        "content": ["WYSI"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": ["🇼", "🇾", "🇸", "🇮"]
+      },
+      "images": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "727",
+        "wildcard": 2,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "7.27",
+        "wildcard": 2,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "72.7",
+        "wildcard": 2,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "WYSI",
+        "wildcard": 1,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "when you see it",
+        "wildcard": 1,
+        "case_sensitive": false
+      }
+    ]
+  }
 ]

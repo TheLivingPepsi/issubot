@@ -32,13 +32,9 @@ def craft_activity(properties: dict | None = None):
         match (properties["type"]):
             case "Playing":
                 activity = discord.Game(
-                    name=properties["name"],
-                    start=datetime.fromtimestamp(properties["start"])
-                    if properties["start"] is not None
-                    else None,
-                    end=datetime.fromtimestamp(properties["end"])
-                    if properties["end"] is not None
-                    else None,
+                    name=properties["name"]
+                    if properties["name"] is not None
+                    else "something",
                 )
 
             case "Streaming":
@@ -46,9 +42,9 @@ def craft_activity(properties: dict | None = None):
                     name=properties["name"]
                     if properties["name"] is not None
                     else "something",
-                    url=properties["url"],
-                    platform=properties["platform"],
-                    game=properties["game"],
+                    url=properties["url"]
+                    if properties["url"] is not None
+                    else "https://www.twitch.tv/thelivingpepsi",
                 )
 
             case "Listening" | "Watching" | "Competing":
