@@ -16,6 +16,11 @@
         "phrase": "hello",
         "wildcard": 0,
         "case_sensitive": false
+      },
+      {
+        "phrase": "hi",
+        "wildcard": 0,
+        "case_sensitive": false
       }
     ],
 
@@ -61,6 +66,26 @@
       {
         "phrase": "when you see it",
         "wildcard": 1,
+        "case_sensitive": false
+      }
+    ]
+  },
+  {
+    "response": {
+      "replies": {
+        "content": ["no"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "help",
+        "wildcard": 2,
         "case_sensitive": false
       }
     ]

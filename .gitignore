@@ -2,4 +2,4 @@ TODO.txt
 logging_files/
 *.log
 __pycache__/
-hosted/py_files/ignore/
+ignore/
