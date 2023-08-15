@@ -1,7 +1,8 @@
-TODO.txt
 logging_files/
 *.log
+*.out
 __pycache__/
 ignore/
-wavelink_files/
 requirements.txt
+quickstart.sh
+TODO.txt

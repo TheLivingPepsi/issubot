@@ -13,7 +13,7 @@ class Cog(commands.Cog, name=name):
     def __init__(self, bot):
         self.bot = bot
         self.responses = json.load(
-            open(f"{DIRS.JSON}\\auto_responses.json", encoding="utf8")
+            open(f"{DIRS.JSON}/auto_responses.json", encoding="utf8")
         )
         self.punctuation = ".,:;/-@\"'!?\–\—•₽¥€¢£₩§”“„»«…¿¡\\’‘`$()_"
         self.logger = logging.getLogger("discord")

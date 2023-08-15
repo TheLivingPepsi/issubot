@@ -32,8 +32,8 @@ class bot_handler:
         async def load_cogs(self) -> None:
             files = [
                 f
-                for f in os.listdir(f"{DIRS.PY}\\extensions")
-                if os.path.isfile(os.path.join(f"{DIRS.PY}\\extensions", f))
+                for f in os.listdir(f"{DIRS.PY}/extensions")
+                if os.path.isfile(os.path.join(f"{DIRS.PY}/extensions", f))
             ]
             for file in files:
                 try:
@@ -59,8 +59,8 @@ class bot_handler:
         async def reload_cogs(self) -> None:
             files = [
                 f
-                for f in os.listdir(f"{DIRS.PY}\\extensions")
-                if os.path.isfile(os.path.join(f"{DIRS.PY}\\extensions", f))
+                for f in os.listdir(f"{DIRS.PY}/extensions")
+                if os.path.isfile(os.path.join(f"{DIRS.PY}/extensions", f))
             ]
             for file in files:
                 try:
@@ -102,7 +102,7 @@ class bot_handler:
             "intents": discord.Intents.all(),
             "case_insensitive": False,
         }
-        self.bot_settings = json.load(open(f"{DIRS.JSON}\\bot_settings.json"))
+        self.bot_settings = json.load(open(f"{DIRS.JSON}/bot_settings.json"))
         self.owner_id = int(os.environ["OWNER_ID"].replace('"', ""))
 
     @classmethod
@@ -189,7 +189,7 @@ class log_handler:
         logging.getLogger("discord.http").setLevel(logging.INFO)
 
         handler = logging.handlers.RotatingFileHandler(
-            filename=f"{DIRS.LOGGING}\\discord.log",
+            filename=f"{DIRS.LOGGING}/discord.log",
             encoding="utf-8",
             maxBytes=32 * 1024 * 1024,
             backupCount=5,
