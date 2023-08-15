@@ -1,52 +1,37 @@
 {
-    "activities": [
-        {
-            "type": "Playing",
-            "name": "Chillissu"
-        },
-        {
-            "type": "Streaming",
-            "name": "league of legends",
-            "url": "https://www.twitch.tv/arcticslayertv"
-        },
-        {
-            "type": "Listening",
-            "name": "k-pop"
-        },
-        {
-            "type": "Watching",
-            "name": "issu's latest video"
-        },
-        {
-            "type": "Competing",
-            "name": "phantom forces"
-        }
-    ],
-
-    "allowed_mentions": {
-        "everyone": false,
-        "users": true,
-        "roles": false,
-        "replied_user": true
+  "activities": [
+    {
+      "type": "Playing",
+      "name": "Chillissu"
     },
-
-    "command_prefix": [
-        "@",
-        "issu-",
-        "i-",
-        "s!",
-        "p!"
-    ],
-
-    "description": "issu's personal multi-purpose discord bot with customized features and functions for servers",
-
-    "help_command": {
-        "default": true,
-        "command": {
-            "show_hidden": null,
-            "verify_checks": null
-        }
+    {
+      "type": "Streaming",
+      "name": "league of legends",
+      "url": "https://www.twitch.tv/arcticslayertv"
     },
-    
-    "case_insensitive": true
+    {
+      "type": "Listening",
+      "name": "k-pop"
+    },
+    {
+      "type": "Watching",
+      "name": "issu's latest video"
+    },
+    {
+      "type": "Competing",
+      "name": "phantom forces"
+    }
+  ],
+
+  "allowed_mentions": {
+    "everyone": false,
+    "users": true,
+    "roles": false,
+    "replied_user": false
+  },
+
+  "command_prefix": ["@", "issu-", "i-", "s!", "p!"],
+
+  "description": "issu's personal multi-purpose discord bot with customized features and functions for servers",
+  "case_insensitive": true
 }

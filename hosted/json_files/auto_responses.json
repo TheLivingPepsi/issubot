@@ -70,10 +70,10 @@
       }
     ]
   },
-  {
+   {
     "response": {
       "replies": {
-        "content": ["no"]
+        "content": ["I'm sure someone will be able to help you"]
       },
       "reactions": {
         "random": false,
@@ -86,6 +86,48 @@
       {
         "phrase": "help",
         "wildcard": 2,
+        "case_sensitive": false
+      }
+    ]
+  },
+  {
+    "response": {
+      "replies": {
+        "content": [
+          "O2 molecules, the ceiling, the sky, the atmosphere, the universe..."
+        ]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "what's up",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "whats up",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "wassup",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "sup",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "wsp",
+        "wildcard": 0,
         "case_sensitive": false
       }
     ]

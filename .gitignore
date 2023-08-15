@@ -3,3 +3,5 @@ logging_files/
 *.log
 __pycache__/
 ignore/
+wavelink_files/
+requirements.txt

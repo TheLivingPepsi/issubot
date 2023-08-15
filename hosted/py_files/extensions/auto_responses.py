@@ -76,11 +76,11 @@ class Cog(commands.Cog, name=name):
 
         return False
 
-    @commands.is_owner()
     @commands.Cog.listener()
-    async def on_message(
-        self, message
-    ):
+    async def on_message(self, message):
+        if message.author.id != self.bot.owner_id:
+            return
+
         try:
             ctx = await self.bot.get_context(message)
 

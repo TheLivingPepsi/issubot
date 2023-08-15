@@ -4,37 +4,18 @@ import os
 import roblox
 import asyncio
 import json
-from utilities import DIRS, craft, COLORS, actions, COMPARISONS
+from issutilities import DIRS, craft, COLORS, actions
 import random
 import traceback
-
+import platform
 
 class bot_handler:
     class Bot(commands.Bot):
-        def __init__(
-            self,
-            activity,
-            allowed_mentions,
-            command_prefix,
-            description,
-            help_command,
-            intents,
-            case_insensitive,
-            owner_id,
-        ) -> None:
+        def __init__(self, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
             rbxtoken = os.environ["TOK_rbxacc_hz"].replace('"', "")
             self.ro_client = roblox.Client(rbxtoken)
             self.logger = logging.getLogger("discord")
-            super().__init__(
-                activity=activity,
-                allowed_mentions=allowed_mentions,
-                command_prefix=command_prefix,
-                description=description,
-                help_command=help_command,
-                intents=intents,
-                case_insensitive=case_insensitive,
-                owner_id=owner_id,
-            )
 
         def error_handler(self, task: asyncio.Task) -> None:
             exc = task.exception()
@@ -46,6 +27,9 @@ class bot_handler:
         async def run_once_when_ready(self) -> None:
             await self.wait_until_ready()
             print("----------\nLoading cogs...")
+            await self.load_cogs()
+
+        async def load_cogs(self) -> None:
             files = [
                 f
                 for f in os.listdir(f"{DIRS.PY}\\extensions")
@@ -72,6 +56,34 @@ class bot_handler:
                 f"----------\n{COLORS.BOLD}{self.user.name}#{self.user.discriminator} ({self.user.id}) is now connected and ready!{COLORS.RESET}"
             )
 
+        async def reload_cogs(self) -> None:
+            files = [
+                f
+                for f in os.listdir(f"{DIRS.PY}\\extensions")
+                if os.path.isfile(os.path.join(f"{DIRS.PY}\\extensions", f))
+            ]
+            for file in files:
+                try:
+                    await self.reload_extension(
+                        f"extensions.{file.replace('.py', '')}"
+                    )  # can we switch this back to nested strings in python 3.12?
+                    print("    > Loaded cog!")
+                except commands.errors.ExtensionNotLoaded:
+                    await self.load_extension(f"extensions.{file.replace('.py', '')}")
+                    print("    > Loaded cog!")
+                except Exception as exc:
+                    self.logger.error(
+                        f"extensions.{file.replace('.py', '')} failed to reload!",
+                        exc_info=exc,
+                    )
+                    print(
+                        f"----------\n> extensions.{file.replace('.py', '')} failed to reload:"
+                    )
+                    traceback.print_exception(exc)
+                    print("----------")
+
+            print(f"----------\n{COLORS.BOLD}Cogs have been reloaded!{COLORS.RESET}")
+
         async def setup_hook(self) -> None:
             print("Launching [issu]bot...")
             runner = asyncio.create_task(self.run_once_when_ready())
@@ -88,7 +100,7 @@ class bot_handler:
             "case_insensitive": False,
         }
         self.bot_settings = json.load(open(f"{DIRS.JSON}\\bot_settings.json"))
-        self.owner_id = os.environ["OWNER_ID"].replace('"', "")
+        self.owner_id = int(os.environ["OWNER_ID"].replace('"', ""))
 
     @classmethod
     def check_prefixes(self, prefixes: list | None = ["@"]) -> any:
@@ -126,6 +138,29 @@ class bot_handler:
         except:
             return commands.DefaultHelpCommand()
 
+    def add_commands(self, bot: commands.Bot):
+        @bot.command(aliases=['reload', 'reload_extensions'])
+        @commands.is_owner()
+        async def reload_cogs(ctx):
+            '''Reloads all extensions.
+            '''
+            await ctx.reply("Reloading extensions!")
+            try:
+                return await self.bot.reload_cogs()
+            except Exception as exc:
+                print(exc)
+        
+        @bot.command(aliases=['restart', 'reset', 'shutdown', 'stop'])
+        @commands.is_owner()
+        async def close(ctx):
+            """Stops the bot. If functioning properly, it should automatically reboot and come back online.
+            """
+
+            await ctx.reply("Bot is shutting down...")
+            await bot.change_presence(status=discord.Status.idle)
+            await bot.close()
+
+
     def create_bot(self, use_default: bool | None = False) -> commands.Bot:
         set_dict = self.default_bot
 
@@ -145,7 +180,8 @@ class bot_handler:
             )
             set_dict["case_insensitive"] = self.bot_settings["case_insensitive"]
 
-        custom_bot = self.Bot(
+
+        bot = self.Bot(
             activity=set_dict["activity"],
             allowed_mentions=set_dict["allowed_mentions"],
             command_prefix=set_dict["command_prefix"],
@@ -156,11 +192,11 @@ class bot_handler:
             owner_id=self.owner_id,
         )
 
-        return custom_bot
+        self.add_commands(bot)
 
+        return bot
 
 import logging, logging.handlers
-
 
 class log_handler:
     @classmethod
@@ -219,7 +255,20 @@ class version_handler:
 
     @classmethod
     def check_version(self) -> None:
-        comparisons = COMPARISONS
+        comparisons = {
+        "Python": [
+            platform.python_version(),
+            "https://endoflife.date/api/python.json",
+        ],
+        "discord.py": [
+            discord.__version__,
+            "https://pypi.org/pypi/discord.py/json",
+        ],
+        "ro.py": [
+            roblox.__version__,
+            "https://pypi.org/pypi/roblox/json",
+        ]
+        }
         actions.clear()
 
         for comparison in comparisons.items():
