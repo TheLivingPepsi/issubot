@@ -2,7 +2,7 @@ import os
 import discord
 from discord.ext import commands
 import json
-from utilities import DIRS, craft
+from issutilities import DIRS, craft
 import logging, logging.handlers, traceback
 import random
 

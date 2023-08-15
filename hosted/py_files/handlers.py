@@ -89,6 +89,9 @@ class bot_handler:
             runner = asyncio.create_task(self.run_once_when_ready())
             runner.add_done_callback(self.error_handler)
 
+    class HelpCommand():
+        pass
+
     def __init__(self) -> None:
         self.default_bot = {
             "activity": None,
@@ -122,22 +125,6 @@ class bot_handler:
         elif other_prefixes:
             return prefixes
 
-    @classmethod
-    def craft_help_command(
-        self, properties: dict | None = None
-    ) -> commands.HelpCommand:
-        try:
-            if not properties["default"]:
-                help_command = commands.HelpCommand(
-                    show_hidden=properties["command"]["show_hidden"],
-                    verify_checks=properties["command"]["verify_checks"],
-                )
-            else:
-                raise Exception("Default value needed.")
-            return help_command
-        except:
-            return commands.DefaultHelpCommand()
-
     def add_commands(self, bot: commands.Bot):
         @bot.command(aliases=['reload', 'reload_extensions'])
         @commands.is_owner()
@@ -146,7 +133,7 @@ class bot_handler:
             '''
             await ctx.reply("Reloading extensions!")
             try:
-                return await self.bot.reload_cogs()
+                return await bot.reload_cogs()
             except Exception as exc:
                 print(exc)
         
@@ -159,7 +146,6 @@ class bot_handler:
             await ctx.reply("Bot is shutting down...")
             await bot.change_presence(status=discord.Status.idle)
             await bot.close()
-
 
     def create_bot(self, use_default: bool | None = False) -> commands.Bot:
         set_dict = self.default_bot
@@ -175,11 +161,8 @@ class bot_handler:
                 self.bot_settings["command_prefix"]
             )
             set_dict["description"] = self.bot_settings["description"]
-            set_dict["help_command"] = self.craft_help_command(
-                self.bot_settings["help_command"]
-            )
             set_dict["case_insensitive"] = self.bot_settings["case_insensitive"]
-
+            #set_dict["help_command"] = self.HelpCommand()
 
         bot = self.Bot(
             activity=set_dict["activity"],
@@ -281,10 +264,11 @@ class version_handler:
                 match (name):
                     case "Python":
                         latest_version = r.json()[0]["latest"]
-                    case "discord.py":
-                        latest_version = list(json.loads(r.text)["releases"].keys())[-1]
                     case _:
-                        latest_version = "Unknown"
+                        try:
+                            latest_version = list(json.loads(r.text)["releases"].keys())[-1]
+                        except:
+                            latest_version = "Unknown"
             except:
                 latest_version = "Unknown"
 
