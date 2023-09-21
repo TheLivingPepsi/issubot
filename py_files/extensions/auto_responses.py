@@ -3,31 +3,28 @@ import discord
 from discord.ext import commands
 import json
 from issutilities import DIRS, craft
-import logging, logging.handlers, traceback
 import random
 
 name = (os.path.basename(__file__)).replace(".py", "")
 
 
-class Cog(commands.Cog, name=name):
+class Cog(
+    commands.Cog,
+    name=" ".join([word.capitalize() for word in name.split("_")]),
+    description="Commands for managing auto-responses",
+):
     def __init__(self, bot):
         self.bot = bot
-        self.responses = json.load(
+        self.responses: dict = json.load(
             open(f"{DIRS.JSON}/auto_responses.json", encoding="utf8")
         )
         self.punctuation = ".,:;/-@\"'!?\–\—•₽¥€¢£₩§”“„»«…¿¡\\’‘`$()_"
-        self.logger = logging.getLogger("discord")
 
-    async def cog_command_error(self, ctx, error):
-        print(
-            f"----------\nAn error occurred in extensions.{name} / #{ctx.channel.name} ({ctx.channel.id}) | {error}\nMessage content:\n{ctx.message.content}"
-        )
-        traceback.print_exception(error)
+    async def cog_load(self):
+        print(f"    > extensions.{name} ({self.__cog_name__}) has loaded!")
 
-        logging.error(
-            f"An error occurred in extensions.{name} / #{ctx.channel.name} ({ctx.channel.id}) @ {ctx.message.jump_url}!",
-            exc_info=error,
-        )
+    async def cog_unload(self) -> None:
+        print(f"    > extensions.{name} ({self.__cog_name__}) has unloaded.")
 
     async def create_response(self, response: dict, message: discord.Message):
         response_settings = response["response"]
@@ -87,7 +84,7 @@ class Cog(commands.Cog, name=name):
             if message.author.bot or ctx.valid:
                 return
 
-            for response in self.responses:
+            for response in self.responses.values():
                 for trigger in response["triggers"]:
                     phrase = trigger["phrase"]
                     phrase_split = phrase.split()
@@ -120,6 +117,10 @@ class Cog(commands.Cog, name=name):
                             )
                         case 2:
                             respond = phrase in msg
+                        case 3:
+                            respond = phrase == split[0]
+                        case 4:
+                            respond = phrase == split[-1]
                         case _:
                             respond = False
 
@@ -129,6 +130,14 @@ class Cog(commands.Cog, name=name):
         except Exception as exc:
             ctx = await self.bot.get_context(message)
             await self.cog_command_error(ctx, exc)
+
+    @commands.command(aliases=["rr"])
+    @commands.is_owner()
+    async def reload_responses(self, ctx):
+        self.responses: dict = json.load(
+            open(f"{DIRS.JSON}/auto_responses.json", encoding="utf8")
+        )
+        await ctx.reply("Reloaded!")
 
 
 async def setup(bot):

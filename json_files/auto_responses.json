@@ -1,5 +1,5 @@
-[
-  {
+{
+  "hello": {
     "response": {
       "replies": {
         "content": ["Hello there.", "hi!", "top o' the mornin' to ya!"]
@@ -8,7 +8,8 @@
         "random": false,
         "emojis": [null]
       },
-      "images": [null]
+      "images": [null],
+      "embed": [null]
     },
 
     "triggers": [
@@ -22,15 +23,9 @@
         "wildcard": 0,
         "case_sensitive": false
       }
-    ],
-
-    "example_for_images": {
-      "is_url": false,
-      "path": null,
-      "filename": null
-    }
+    ]
   },
-  {
+  "727": {
     "response": {
       "replies": {
         "content": ["WYSI"]
@@ -39,7 +34,8 @@
         "random": false,
         "emojis": ["🇼", "🇾", "🇸", "🇮"]
       },
-      "images": [null]
+      "images": [null],
+      "embed": [null]
     },
 
     "triggers": [
@@ -70,27 +66,7 @@
       }
     ]
   },
-   {
-    "response": {
-      "replies": {
-        "content": ["I'm sure someone will be able to help you"]
-      },
-      "reactions": {
-        "random": false,
-        "emojis": [null]
-      },
-      "images": [null]
-    },
-
-    "triggers": [
-      {
-        "phrase": "help",
-        "wildcard": 2,
-        "case_sensitive": false
-      }
-    ]
-  },
-  {
+  "what's up": {
     "response": {
       "replies": {
         "content": [
@@ -101,7 +77,8 @@
         "random": false,
         "emojis": [null]
       },
-      "images": [null]
+      "images": [null],
+      "embed": [null]
     },
 
     "triggers": [
@@ -131,5 +108,322 @@
         "case_sensitive": false
       }
     ]
+  },
+  "69": {
+    "response": {
+      "replies": {
+        "content": [null]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": ["🇳", "ℹ", "🇨", "🇪"]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "69",
+        "wildcard": 1,
+        "case_sensitive": false
+      },
+      {
+        "phrase": ".69",
+        "wildcard": 2,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "69.",
+        "wildcard": 2,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "6.9",
+        "wildcard": 2,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "I": {
+    "response": {
+      "replies": {
+        "content": ["just want to tell you how I'm feeling"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "I-",
+        "wildcard": 4,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "l-",
+        "wildcard": 4,
+        "case_sensitive": true
+      },
+      {
+        "phrase": "1-",
+        "wildcard": 4,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "I",
+        "wildcard": 4,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "gotta": {
+    "response": {
+      "replies": {
+        "content": ["make you understand"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "gotta",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "e": {
+    "response": {
+      "replies": {
+        "content": ["= 2.7182818284590452353602874713527"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "e",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "euler",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "pi": {
+    "response": {
+      "replies": {
+        "content": ["= 3.1415926535897932384626433832795"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "pi",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "π",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "mole": {
+    "response": {
+      "replies": {
+        "content": ["= 6.02214076*(10^23)"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "mole",
+        "wildcard": 0,
+        "case_sensitive": false
+      },
+      {
+        "phrase": "avogadro",
+        "wildcard": 2,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "G": {
+    "response": {
+      "replies": {
+        "content": ["=  6.6740*(10^-11)"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "G",
+        "wildcard": 0,
+        "case_sensitive": true
+      }
+    ]
+  },
+  "h": {
+    "response": {
+      "replies": {
+        "content": ["=  6.62607015*(10^-34)"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "h",
+        "wildcard": 0,
+        "case_sensitive": true
+      },
+      {
+        "phrase": "planck",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "q": {
+    "response": {
+      "replies": {
+        "content": ["= 1.602*(10^-19) C"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "q",
+        "wildcard": 0,
+        "case_sensitive": true
+      },
+      {
+        "phrase": "charge",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "N": {
+    "response": {
+      "replies": {
+        "content": ["= 0.10197 kg-force"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "N",
+        "wildcard": 0,
+        "case_sensitive": true
+      },
+      {
+        "phrase": "charge",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "g": {
+    "response": {
+      "replies": {
+        "content": ["= 9.81 m/s^2"]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "g",
+        "wildcard": 0,
+        "case_sensitive": true
+      },
+      {
+        "phrase": "gravity",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  },
+  "who asked?": {
+    "response": {
+      "replies": {
+        "content": ["I asked."]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null]
+      },
+      "images": [null],
+      "embed": [null]
+    },
+
+    "triggers": [
+      {
+        "phrase": "who asked?",
+        "wildcard": 1,
+        "case_sensitive": false
+      }
+    ]
   }
-]
+}
