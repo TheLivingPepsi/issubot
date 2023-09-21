@@ -1,0 +1,49 @@
+{
+  "EXAMPLE": {
+    "response": {
+      "replies": {
+        "content": [""]
+      },
+      "reactions": {
+        "random": false,
+        "emojis": [null, ""]
+      },
+      "images": [{ "is_url": false, "path": "", "filename": "" }],
+      "embed": [
+        {
+          "color": 0,
+          "timestamp": "default",
+          "url": "",
+          "author": {
+            "url": "",
+            "name": "",
+            "icon_url": ""
+          },
+          "fields": [
+            {
+              "inline": false,
+              "name": "",
+              "value": ""
+            }
+          ],
+          "title": "",
+          "description": "",
+          "thumbnail": { "url": "" },
+          "image": { "url": "" },
+          "footer": {
+            "icon_url": "",
+            "text": ""
+          }
+        }
+      ]
+    },
+
+    "triggers": [
+      {
+        "phrase": "",
+        "wildcard": 0,
+        "case_sensitive": false
+      }
+    ]
+  }
+}

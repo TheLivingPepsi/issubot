@@ -1,0 +1,37 @@
+{
+  "activities": [
+    {
+      "type": "Playing",
+      "name": "Chillissu"
+    },
+    {
+      "type": "Streaming",
+      "name": "league of legends",
+      "url": "https://www.twitch.tv/arcticslayertv"
+    },
+    {
+      "type": "Listening",
+      "name": "k-pop"
+    },
+    {
+      "type": "Watching",
+      "name": "issu's latest video"
+    },
+    {
+      "type": "Competing",
+      "name": "rainbow six siege ranked"
+    }
+  ],
+
+  "allowed_mentions": {
+    "everyone": false,
+    "users": true,
+    "roles": false,
+    "replied_user": false
+  },
+
+  "command_prefix": ["@", "issu-", "i-", "s!", "p!"],
+
+  "description": "issu's personal multi-purpose discord bot with customized features and functions for servers",
+  "case_insensitive": true
+}
