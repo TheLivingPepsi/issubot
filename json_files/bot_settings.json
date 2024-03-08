@@ -6,7 +6,7 @@
     },
     {
       "type": "Streaming",
-      "name": "league of legends",
+      "name": "League of Legends",
       "url": "https://www.twitch.tv/arcticslayertv"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "type": "Competing",
-      "name": "rainbow six siege ranked"
+      "name": "ranked Rainbow 6 Siege"
     }
   ],
 
@@ -30,8 +30,12 @@
     "replied_user": false
   },
 
+  "intents": "All",
+
   "command_prefix": ["@", "issu-", "i-", "s!", "p!"],
 
-  "description": "issu's personal multi-purpose discord bot with customized features and functions for servers",
-  "case_insensitive": true
+  "description": "Customized multi-purpose Discord bot by @issu",
+  "case_insensitive": true,
+  "botname": "issubot",
+  "is_test": false
 }

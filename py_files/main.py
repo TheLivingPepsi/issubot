@@ -1,13 +1,14 @@
-from handlers import log_handler, version_handler, bot_handler
-import os, sys
+import sys
+from handlers import startup_handler, bot_handler, log_handler, version_handler
 
 
-def main(args) -> None:
-    log_handler.create_logging()
-    version_handler.check_version()
+def main(args: list | None = None) -> None:
+    log_handler.create_logger()
 
-    token = os.environ[args[1]].replace('"', "") if len(args) >= 2 else None
-    bot = bot_handler().create_bot(version=args[2])
+    startup_payload = startup_handler.get_startup_payload(args)
+    version_payload = version_handler.get_version_payload()
+
+    bot, token = bot_handler.create_bot(startup_payload, version_payload)
 
     bot.run(token=token)
 
