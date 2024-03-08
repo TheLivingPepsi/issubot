@@ -22,7 +22,7 @@ class Bot(commands.Bot):
         self.logger = logging.getLogger("discord")
         self.bot = self
 
-    def print_divider():
+    def print_divider(self):
         print(f"--- {utils.utcnow()} {"--" * 6}")
 
     async def handle_exception(
@@ -55,11 +55,15 @@ class Bot(commands.Bot):
             jump_url = message.jump_url
 
         owner_message = await owner.send(trunacted_exception)
-        do.sleep_async(1)
+        await do.sleep_async(1)
         if jump_url and owner_message:
             await owner_message.reply(f"Jump URL: {jump_url}")
         elif owner_message and type(ctx) == str:
             await owner_message.reply(f"Event name: {ctx}")
+
+    async def close(self) -> None: # Overridden
+        await self.aiohttp_client.close()
+        await super().close()
 
     async def on_error(self, event: str, *args, **kwargs) -> None:  # Overridden
         exc = sys.exc_info()[1]
@@ -73,7 +77,6 @@ class Bot(commands.Bot):
 
     async def run_once_when_ready(self) -> None:
         await self.wait_until_ready()
-        self.channel = await self.fetch_channel(self.error[1])
         await self.load_cogs()
         self.print_divider()
         print(

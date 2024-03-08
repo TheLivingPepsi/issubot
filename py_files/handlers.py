@@ -34,9 +34,9 @@ class startup_handler:
         is_test = bot_settings.pop("is_test", False)
 
         token = botname == "issubot" and (
-            (is_test and os.getenv("ISSUBOT_TOKEN")) or os.getenv("TESSUBOT_TOKEN")
+            (is_test and os.getenv("TESSUBOT_TOKEN")) or os.getenv("ISSUBOT_TOKEN")
             ) or botname == "djissu" and (
-            (is_test and os.getenv("DJISSU_TOKEN")) or os.getenv("DJTESSU_TOKEN")
+            (is_test and os.getenv("DJTESSU_TOKEN")) or os.getenv("DJISSU_TOKEN")
             ) or None
         
         if not token:
@@ -143,29 +143,29 @@ class version_handler:
         "Python": {
             "Current": platform.python_version(),
             "Latest": {
-                "URL": "https://endoflife.date/api/python.json",
-                "Source": "EOL",
+                "url": "https://endoflife.date/api/python.json",
+                "source": "EOL",
             }
         },
         "discord.py": {
             "Current": discord.__version__,
             "Latest": {
-                "URL": "https://pypi.org/pypi/discord.py/json",
-                "Source": "PyPi",
+                "url": "https://pypi.org/pypi/discord.py/json",
+                "source": "PyPi",
             }
         },
         "ro.py": {
             "Current": roblox.__version__,
             "Latest": {
-                "URL": "https://pypi.org/pypi/roblox/json",
-                "Source": "PyPi",
+                "url": "https://pypi.org/pypi/roblox/json",
+                "source": "PyPi",
             }
         },
         "issutilities": {
             "Current": issutilities.__version__,
             "Latest": {
-                "URL": "https://pypi.org/pypi/issutilities/json",
-                "Source": "PyPi",
+                "url": "https://pypi.org/pypi/issutilities/json",
+                "source": "PyPi",
             }
         }
     }
