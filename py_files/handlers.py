@@ -74,7 +74,7 @@ class bot_handler:
         @bot.command(aliases=["latency", "test"])
         async def ping(ctx):
             """Displays the bot's latency/ping."""
-            bot_latency = round(self.bot.latency * 1000, 2)
+            bot_latency = round(bot.latency * 1000, 2)
 
             await ctx.reply(f"🏓 Pong!\n- Bot latency: {bot_latency}ms")
 

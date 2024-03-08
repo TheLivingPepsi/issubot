@@ -40,9 +40,9 @@ class Bot(commands.Bot):
 
         owner = self.get_user(self.owner_id)
 
-        trunacted_exception = (
-            f"{name}: {" ".join(traceback.format_exception(exception))}"
-        )[:1997] + "..."
+        exception_body = (f"{name}: {" ".join(traceback.format_exception(exception))}")[:1995]
+
+        trunacted_exception = f"`{exception}...`"
 
         # TODO: make this an embed!
 
