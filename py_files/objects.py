@@ -122,7 +122,7 @@ class Bot(commands.Bot):
 
     async def reload_cogs(self) -> None:
         self.print_divider()
-        print("reloading cogs...")
+        print(f"{COLORS.BOLD}Reloading cogs...{COLORS.RESET}")
 
         cogs = [
             cog_file 
@@ -131,12 +131,14 @@ class Bot(commands.Bot):
         ]
 
         for cog in cogs:
+            cog_name = f"extensions.{cog.replace(".py", "")}"
+
             try:
-                await self.reload_extension(f"extensions.{cog.replace(".py", "")}")
-                print(f"> Reloaded {cog}!")
+                await self.reload_extension(cog_name)
+                print(f"> Reloaded {cog_name}!")
             except commands.errors.ExtensionNotLoaded:
                 print(f"> Cog {cog} was not loaded, loading cog...")
-                self.load_cogs([cog])
+                await self.load_cogs([cog])
             except Exception as exc:
                 print(f"> Failed to load {cog}: {exc}")
                 await self.handle_exception(exc, None, f"reload_cogs: {cog}", True)

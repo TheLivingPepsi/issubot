@@ -79,7 +79,7 @@ class bot_handler:
     def create_bot(self, startup_payload: tuple, startup_notifs: list) -> objects.Bot | str:
         (bot_settings, token, botname) = startup_payload
 
-        help_command = None # classes.HelpCommand()
+        help_command = commands.DefaultHelpCommand() # classes.HelpCommand()
         activities = None
 
         for payload in bot_settings["activities"]:
