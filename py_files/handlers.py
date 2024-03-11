@@ -1,12 +1,8 @@
-import discord, os, json, random, logging, roblox, requests, platform
-from logging.handlers import RotatingFileHandler
-import subclasses
-import os.path as path
-import issutilities
-import issutilities.directories as directories
-from issutilities.colors import ANSI as COLORS
-from issutilities.actions import CONSOLE as do
-from issutilities.craft import DISCORD as craft
+import discord, json, random, requests, platform, roblox
+import os, os.path as path
+import logging, logging.handlers
+import issutilities, issutilities.craft as craft, issutilities.directories as directories, issutilities.colors as COLORS
+import objects
 from discord.ext import commands
 
 class startup_handler:
@@ -51,7 +47,7 @@ class bot_handler:
             return int(os.environ["OWNER_ID"].replace('"', ""))
 
     @classmethod
-    def __do_additional_setup(self, bot: subclasses.Bot | commands.Bot) -> None:
+    def __do_additional_setup(self, bot: objects.Bot | commands.Bot) -> None:
         bot._BotBase__cogs = commands.core._CaseInsensitiveDict() # makes cog arguments case-insensitive
 
         @bot.command(aliases=["reload", "reload_extensions"])
@@ -61,43 +57,44 @@ class bot_handler:
             await ctx.reply("Reloading extensions!")
             await bot.reload_cogs()
 
-        @bot.command(aliases=["restart", "shutdown"])
+        @bot.command(aliases=["shutdown", "close"])
         @commands.is_owner()
-        async def close(ctx):
-            """Stops the bot. If functioning properly, it should automatically reboot and come back online."""
+        async def restart(ctx: commands.Context):
+            """Stops the bot. In a production environment, it should automatically reboot and come back online."""
             
             bot.print_divider()
+            print(f"{COLORS.BOLD}Shutting down {bot.user.name}...{COLORS.RESET}")
             await ctx.reply("Bot is shutting down...")
             await bot.change_presence(status=discord.Status.idle)
             await bot.close()
 
         @bot.command(aliases=["latency", "test"])
-        async def ping(ctx):
+        async def ping(ctx: commands.Context):
             """Displays the bot's latency/ping."""
             bot_latency = round(bot.latency * 1000, 2)
 
             await ctx.reply(f"🏓 Pong!\n- Bot latency: {bot_latency}ms")
 
     @classmethod
-    def create_bot(self, startup_payload: tuple, startup_notifs: list) -> subclasses.Bot | str:
+    def create_bot(self, startup_payload: tuple, startup_notifs: list) -> objects.Bot | str:
         (bot_settings, token, botname) = startup_payload
 
-        help_command = None # subclasses.HelpCommand()
+        help_command = None # classes.HelpCommand()
         activities = None
 
         for payload in bot_settings["activities"]:
             if activities is None:
                 activities = []
-            activities.append(craft.activity(payload))
+            activities.append(craft.an.activity(payload))
 
-        bot = subclasses.Bot(
+        bot = objects.Bot(
             activity=activities and random.choice(activities) or None,
             all_activities=activities,
-            allowed_mentions=craft.allowed_mentions(bot_settings["allowed_mentions"]),
-            command_prefix=craft.prefix(bot_settings["command_prefix"]),
+            allowed_mentions=craft.an.allowed_mentions(bot_settings["allowed_mentions"]),
+            command_prefix=craft.a.prefix(bot_settings["command_prefix"]),
             description=bot_settings["description"],
             help_command=help_command,
-            intents=craft.intents(bot_settings["intents"]),
+            intents=craft.an.intents(bot_settings["intents"]),
             case_insensitive=bot_settings["case_insensitive"],
             owner_id = self.__get_owner_id(),
             botname=botname,
@@ -108,15 +105,14 @@ class bot_handler:
 
         return bot, token
 
-class log_handler:
+    @classmethod
+    def run(self, bot: objects.Bot | commands.Bot, token: str) -> None:
+        bot.run(token, log_handler=None)
+class logging_handler:
     @classmethod
     def create_logger(self, botname: str | None = "issubot") -> None:
         DIRS = botname == "issubot" and directories.ISSUBOT or directories.DJISSU
-        
-        logger = logging.getLogger("discord")
-        logger.setLevel(logging.DEBUG)
-        logging.getLogger("discord.http").setLevel(logging.INFO)
-
+      
         logging_file_name = f"{DIRS.LOGGING}/discord.log"
 
         if not path.exists(DIRS.LOGGING):
@@ -125,16 +121,19 @@ class log_handler:
         if not path.exists(logging_file_name):
             open(logging_file_name, mode="x").close()
 
-        handler = RotatingFileHandler(
+
+        logger = logging.getLogger('discord')
+        logger.setLevel(logging.DEBUG)
+        logging.getLogger('discord.http').setLevel(logging.INFO)
+
+        handler = logging.handlers.RotatingFileHandler(
             filename=logging_file_name,
-            encoding="utf-8",
-            maxBytes=32 * 1024 * 1024,
-            backupCount=5,
+            encoding='utf-8',
+            maxBytes=32 * 1024 * 1024,  # 32 MiB
+            backupCount=5,  # Rotate through 5 files
         )
-        dt_fmt = "%Y-%m-%d %H:%M:%S"
-        formatter = logging.Formatter(
-            "[{asctime}] [{levelname}] {name}: {message}", dt_fmt, style="{"
-        )
+        dt_fmt = '%Y-%m-%d %H:%M:%S'
+        formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
@@ -176,27 +175,33 @@ class version_handler:
         current_version: str | None = "Unknown",
         latest_version: str | None = "Unknown",
     ) -> str:
+        desc_string = None
 
         if latest_version == "Unknown":
-            return "is potentially outdated, but the latest version could not be checked."
+            desc_string = "is potentially outdated, but the latest version could not be checked."
         elif latest_version != current_version:
-            return "is outdated or was removed. Consider updating!"
-        return "is up-to-date!s" 
+            desc_string = "is outdated or was removed. Consider updating!"
+        else:
+            desc_string = "is up-to-date!" 
+    
+        return f"{desc_string}\n - **Current**: {current_version}\n - **Latest**: {latest_version}"
 
     @classmethod
     def __get_latest_version(self, url: str | None = None, source: str | None = None) -> str | None:
         try: 
             (request := requests.get(url)).raise_for_status()
 
+            json_data = request.json()
+
             match source:
                 case "EOL":
-                    return list(json.loads(request.text)["releases"].keys())[-1]
+                    return json_data[0]["latest"]
                 case "PyPi":
-                    return request.json()[0]["latest"]
+                    return (list(json_data["releases"].keys()))[-1]
                 case _:
                     return "Invalid source"
         except Exception as e:
-            return "Error getting latest"
+            return e
 
     @classmethod
     def get_version_payload(self) -> dict:
