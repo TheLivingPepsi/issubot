@@ -1,12 +1,149 @@
-import os, discord, json
+import os, discord
 from discord.ext import commands
+from discord import utils
+from datetime import datetime
 
 name = (os.path.basename(__file__)).replace(".py", "")
+
+class Schemas:
+    def __init__(self):
+        self.languages = {
+            **dict.fromkeys(["de", "german", "deutsch", "deutsche"], "de"), 
+            **dict.fromkeys(["es", "spanish", "español", "espanol"], "es"),
+            **dict.fromkeys(["fr", "french", "francais", "francaise", "français", "française"], "fr"),
+            **dict.fromkeys(["it", "italian", "italiano", "italiana"], "it"),
+            **dict.fromkeys(["pl", "polish", "polski", "polsku"], "pl"),
+            **dict.fromkeys(["ru", "russian", "русский"], "ru"),
+            **dict.fromkeys(["zh", "chinese", "中文"], "zh")
+        }
+        self.fallback = "en"
+        self.datetime_format = "%Y-%m-%dT%H:%M:%SZ"
+
+    def DiscordTimestamp(self, date: str | datetime) -> str:
+        def get_date(date: str) -> datetime:
+            return datetime.strptime(date, self.datetime_format)
+        
+        def get_timestamp(dt: datetime) -> str:
+            return utils.format_dt(dt)
+        
+        if type(date) == str:
+            date = get_date(date)
+
+        return get_timestamp(date)
+
+    def WarSeasonOverview(self, payload: dict, latest: bool | None = False) -> dict:
+        def get_seasons(payload: list[str]) -> list[str]:
+            seasons = []
+
+            for season in payload.sort(reverse=True):
+                season_text = f"- Season {season} {"**[CURRENT]**" if season == payload["current"] else ""}"
+                seasons.append(season_text)
+
+            return seasons
+
+        title = latest and "# Current War Season" or "# War Seasons" 
+
+        if latest:
+            seasons = [f"- Season {payload["current"]}"]
+        else:
+            seasons = get_seasons(payload["seasons"])
+
+        return {"title": title, "seasons": seasons}
+
+    def PlanetSchema(self, payload: dict) -> dict:
+        pass
+
+    def GlobalEventSchema(self, payload: list[dict], season: int, latest: bool | None = False, language: str | None = "en") -> list[dict]:
+        def get_planets(payload: list[dict]) -> list[str]:
+            payload.sort(lambda x: x["name"])
+            planets = []
+
+            for planet in payload:
+                planets.append(f"- {planet["name"]}")
+
+            if len(planets) == 0:
+                planets.append("- Unavailable")
+
+            return planets
+        
+        def get_effects(payload: list) -> list:
+            # TODO: When possible, try to use PlanetEffectSchema when it is mapped
+            return ["- None!"]
+
+        payload.sort(key=lambda x: x["id"], reverse=True)
+        
+        try:
+            language = self.languages[language]
+        except KeyError:
+            language = self.fallback
+
+        events = []
+
+        title = f"# {"Latest War Event" if latest else "War Events"} of Season {season}"
+
+        for i, event in enumerate(payload):
+            subtitle = f"## Event {event["id"]}: {event["title"]}"
+            faction = f"> **Affected faction**\n- {event["race"]}"
+            planets = f"> **Remaining Involved Planets**\n{"\n".join(get_planets(payload["planets"]))}"
+            effects = f"> **Event Effects**\n{"\n".join(get_effects(payload["effects"]))}"
+            description = f"> **Description**\n{event["message"][language]}"
+
+            events.append({"subtitle": subtitle, "faction": faction, "planets": planets, "effects": effects, "description": description})
+
+            if latest and i == 0:
+                break
+
+        return {"title": title, "events": events}
+
+    def HomeWorldSchema(self, payload: dict) -> dict:
+        def get_planets(payload: list[dict]) -> list[str]:
+            payload.sort(lambda x: x["name"])
+            planets = []
+
+            for planet in payload:
+                planets.append(f" - {planet["name"]}")
+
+            if len(planets) == 0:
+                planets.append(" - None!")
+
+            return planets
+        
+        def get_homeworlds(payload: dict) -> list:
+            homeworlds = []
+
+            for homeworld in payload:
+                race = f"- Faction: {homeworld["race"]}"
+                planets = get_planets(homeworld["planets"])
+
+            homeworlds.append({"race": race, "planets": planets})
+
+            return homeworlds
+        
+        subtitle = f"## Homeworlds"
+        homeworlds = get_homeworlds(payload)
+
+        return {"subtitle": subtitle, "homeworlds": homeworlds}
+
+    def WarInfoSchema(self, payload: dict) -> dict:  
+        title = f"# War Season {payload["war_id"]}"
+        start_date = self.DiscordTimestamp(payload["start_date"])
+        end_date = self.DiscordTimestamp(payload["end_date"])
+
+        duration = f"## {start_date} - {end_date}"
+        min_client_ver = f"## Required Client Version\n- {payload["minimum_client_version"]}+"
+        homeworlds = self.HomeWorldSchema(payload["home_worlds"])
+    
+        return {"title": title, "duration": duration, "min_client_ver": min_client_ver, "homeworlds": homeworlds}
+    
+    # TODO: get all the json error schemas and make an error checker
+
 
 class Cog(commands.Cog, name=name, description=""):
     def __init__(self, bot):
         self.bot = bot
         self.sources = ["http://localhost:4000/", "https://helldivers-2.fly.dev/"]
+        self.latest_keywords = ["current", "latest", "now"]
+        self.Schemas = Schemas()
 
     async def cog_load(self):
         print(f"    > extensions.{self.__cog_name__} has loaded!")
@@ -14,14 +151,19 @@ class Cog(commands.Cog, name=name, description=""):
     async def cog_unload(self) -> None:
         print(f'> Unloading cog "extensions.{self.__cog_name__}"...')
 
-    async def parse(self, to_parse: str | None = "") -> dict | list:
+    async def parse(self, to_parse: str | None = "") -> tuple:
         for source in self.sources:
-            async with self.bot.craft_this.session.get(
-                f"{source}api/{to_parse}"
-            ) as resp:
-                return await resp.json(), [resp.status, resp.reason]
+            try:
+                async with self.bot.craft_this.session.get(
+                    f"{source}api/{to_parse}"
+                ) as resp:
+                    json = await resp.json()
+
+                    return json, [resp.status, resp.reason]
+            except:
+                continue
             
-    async def get_current_season(self, message) -> tuple | None:
+    async def get_current_season(self, message: discord.Message) -> tuple:
         (parsed, status) = await self.parse()
             
         match status[0]:
@@ -32,65 +174,81 @@ class Cog(commands.Cog, name=name, description=""):
                 return None, False
             
     @commands.group(aliases=["hd", "hd2", "helldivers"], invoke_without_command=True)
-    async def helldivers2(self, ctx):
-        await self.bot.get_command("helldivers2 wars").invoke(ctx)
+    async def helldivers2(self, ctx: commands.Context, arg_1: int | str | None = "all", arg_2: str | None = None):
+        try:
+            war_id = int(arg_1)
+            
+            if arg_2 is not None:
+                return await ctx.invoke(self.bot.get_command("hd2 events"), war_id, arg_2)
+
+            await ctx.invoke(self.bot.get_command("hd2 info"), war_id)
+        except ValueError:
+            pass
+
+        await ctx.invoke(self.bot.get_command("hd2 wars"), arg_1)
 
     @helldivers2.command(aliases=["seasons"])
-    async def wars(self, ctx):
+    async def wars(self, ctx, view: str | None = "all"):
         """Gets all available war seasons by id."""
-        message = await ctx.reply("Getting all war seasons...", mention_author=False)
+        get_latest = view.lower() in self.latest_keywords
+
+        message = await ctx.reply(f"Getting {"current war season" if get_latest else "all war seasons"}...", mention_author=False)
 
         (parsed, status) = await self.parse()
 
         match status[0]:
             case 200:
-                message_content = f"""# War Seasons
-                {"\n".join([f"- {season} {"**[CURRENT]**" if season == parsed["current"] else ""}" for season in parsed["seasons"]])}
+                text = self.Schemas.WarSeasonOverview(parsed, get_latest)
+                text["note_1"] = ("> - For a war season's events, use `p!hd events [season]`")
+                text["note_2"] = ("> - For more information on a war season, use `p!hd info [season]`")
+                parsed_string = f"""{text["title"]}
+                {"\n".join(text["seasons"])}
 
-                > - For a war season's events, use `p!helldivers events [season]`
-                > - For more information on a war season, use `p!helldivers info [season]`
+                {text["note_1"]}
+                {text["note_2"]}
                 """
-                return await message.edit(content=message_content, allowed_mentions=discord.AllowedMentions.all())
+           
+                return await message.edit(content=parsed_string, allowed_mentions=discord.AllowedMentions.all())
             case _:
                 return await message.edit(content=f"Unable to get the seasons. {" ".join(status)}", allowed_mentions=discord.AllowedMentions.all())
 
     @helldivers2.command()
-    async def events(self, ctx, season: int | None = None, view: str | None = "latest"):
-        had_no_season = season == None
-        message = await ctx.reply(f"Getting war events for {"the current season" if had_no_season else "Season {season}"}...", mention_author=False)
+    async def events(self, ctx, season: int | None = None, view: str | None = "all", language: str | None = "en"):
+        no_season = season == None
+        get_latest = view.lower() in self.latest_keywords
 
-        if not season:
+        message = await ctx.reply(f"Getting {"the latest war event" if get_latest else "war events"} for {"the current season" if no_season else f"Season {season}"}...", mention_author=False)
+
+        if no_season:
             (season, success) = await self.get_current_season(message)
 
             if not success:
                 return
-            
-        (parsed, status) = await self.parse(f"{season}/events{"/latest" if view.lower() == "latest" else ""}")
+        
+        (parsed, status) = await self.parse(f"{season}/events{"/latest" if get_latest else ""}")
 
         match status[0]:
             case 200:
-                events = []
-
-                parsed = [parsed] if view.lower() == "latest" else parsed
+                parsed = [parsed] if get_latest else parsed
+                text = self.Schemas.GlobalEventSchema(parsed, season, get_latest, language)
                 
-                for event in parsed:
-                    split_title = event["title"].split("\n", 1)
-                    title = f"## {split_title[0]}"
-                    effects = f"> **Effects**\n{"\n".join([f"- {effect}" for effect in event["effects"]]) if len(event["effects"]) > 0 else "- None!"}"
-                    description = f"> **Description**\n{event["message"]["en"] if len(event["message"]["en"]) > 0 else split_title[1] if len(split_title) > 1 else "None!"}"
-                    event_text = f"{title}\n{effects}\n\n{description}\n"
-                    events.append(event_text)
+                def get_subparsed_message(payload: dict) -> str:
+                    subparsed_message = f"{payload["subtitle"]}\n{payload["description"]}\n\n{payload["faction"]}\n\n{payload["planets"]}\n\n{payload["effects"]}"
 
-                parsed_message = f"# {"Latest Event" if view.lower() == "latest" else "Events"} of War Season {season}{f" (current season)" if had_no_season else ""}\n{"\n".join(events)}"
+                    return subparsed_message
+
+                parsed_message = f"""{text["title"]}
+                {"\n\n".join([get_subparsed_message(event) for event in text["events"]])}
+                """
 
                 return await message.edit(content=parsed_message, allowed_mentions=discord.AllowedMentions.all())
             case _:
-                return await message.edit(content=f"Unable to get the events. {" ".join(status)}", allowed_mentions=discord.AllowedMentions.all())
+                return await message.edit(content=f"Unable to get the events. ({status[0]} {status[1]})", allowed_mentions=discord.AllowedMentions.all())
 
     @helldivers2.command(aliases=["info"])
     async def information(self, ctx, season: int | None = None):
         had_no_season = season == None
-        message = await ctx.reply(f"Getting info for war {f"the current season" if had_no_season else f"Season {season}"}...", mention_author=False)
+        message = await ctx.reply(f"Getting war info for {f"the current season" if had_no_season else f"Season {season}"}...", mention_author=False)
 
         if not season:
             (season, success) = await self.get_current_season(message)
@@ -102,25 +260,14 @@ class Cog(commands.Cog, name=name, description=""):
 
         match status[0]:
             case 200:
-                dumped_string = json.dumps(parsed, indent=2)
+                text = self.Schemas.WarInfoSchema(parsed)
+                parsed_message = "Currently unavailable!"
 
-                if len(dumped_string) > 1986:
-                    partitions = dumped_string[:1981].rpartition("\n")
-                    max_length = len(partitions[2])
-                    lines = len((dumped_string.replace(f"{partitions[0]}{partitions[1]}", "")).split("\n"))-2
-                    new_line = f"[{lines} more lines...]"
-
-                    if len(new_line) > max_length:
-                        new_line = "[...]"
-
-                    dumped_string = f"{partitions[0]}\n{new_line}"
-
-
-                parsed_string = f"```json\n{dumped_string}\n```"
-
-                return await message.edit(content=parsed_string, allowed_mentions=discord.AllowedMentions.all())
+                return await message.edit(content=parsed_message, allowed_mentions=discord.AllowedMentions.all())
             case _:
-                return await message.edit(content=f"Unable to get season info. {" ".join(status)}", allowed_mentions=discord.AllowedMentions.all())
+                return await message.edit(content=f"Unable to get season info. ({status[0]} {status[1]})", allowed_mentions=discord.AllowedMentions.all())
+
+    
 
 async def setup(bot):
     print(f'> Loading cog "extensions.{name}"...')
