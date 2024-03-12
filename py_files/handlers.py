@@ -197,7 +197,7 @@ class version_handler:
                 case "EOL":
                     return json_data[0]["latest"]
                 case "PyPi":
-                    return (list(json_data["releases"].keys()))[-1]
+                    return json_data["info"]["version"]
                 case _:
                     return "Invalid source"
         except Exception as e:

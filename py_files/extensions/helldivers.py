@@ -26,16 +26,38 @@ class Schemas:
         def get_timestamp(dt: datetime) -> str:
             return utils.format_dt(dt)
         
-        if type(date) == str:
-            date = get_date(date)
+        try:
+            if type(date) == str:
+                date = get_date(date)
 
-        return get_timestamp(date)
+            return get_timestamp(date)
+        except:
+            return self.DiscordTimestamp(utils.utcnow())
+
+    def PlanetNames(self, payload: list[dict], indent: int | None = 0) -> list[str]:
+        # TODO: This could be merged with PlanetSchema, will have to see
+        clamp = lambda x: max(0, min(round(x), 1)) 
+        indent = clamp(indent)
+
+        if len(payload) == 0:
+            return [f"{" "*indent}- None!"]
+
+        payload.sort(key=lambda x: x["name"])
+        planets = []
+
+        for planet in payload:
+            planets.append(f"{" "*indent}- {planet["name"]}")
+
+        return planets
 
     def WarSeasonOverview(self, payload: dict, latest: bool | None = False) -> dict:
-        def get_seasons(payload: list[str]) -> list[str]:
+        def get_seasons(seasons_payload: list[str]) -> list[str]:
+            if len(seasons_payload) == 0:
+                return ["- None!"]
+
             seasons = []
 
-            for season in payload.sort(reverse=True):
+            for season in seasons_payload:
                 season_text = f"- Season {season} {"**[CURRENT]**" if season == payload["current"] else ""}"
                 seasons.append(season_text)
 
@@ -50,27 +72,13 @@ class Schemas:
 
         return {"title": title, "seasons": seasons}
 
-    def PlanetSchema(self, payload: dict) -> dict:
+    def PlanetSchema(self, payload: list[dict]) -> dict:
         pass
 
-    def GlobalEventSchema(self, payload: list[dict], season: int, latest: bool | None = False, language: str | None = "en") -> list[dict]:
-        def get_planets(payload: list[dict]) -> list[str]:
-            payload.sort(lambda x: x["name"])
-            planets = []
-
-            for planet in payload:
-                planets.append(f"- {planet["name"]}")
-
-            if len(planets) == 0:
-                planets.append("- Unavailable")
-
-            return planets
-        
-        def get_effects(payload: list) -> list:
+    def GlobalEventSchema(self, payload: list[dict], season: int, latest: bool | None = False, language: str | None = "en") -> list[dict]:  
+        def get_effects(effects_payload: list) -> list:
             # TODO: When possible, try to use PlanetEffectSchema when it is mapped
             return ["- None!"]
-
-        payload.sort(key=lambda x: x["id"], reverse=True)
         
         try:
             language = self.languages[language]
@@ -81,11 +89,16 @@ class Schemas:
 
         title = f"# {"Latest War Event" if latest else "War Events"} of Season {season}"
 
+        if len(payload) == 0:
+            return {"title": title, "events": ["## None!"]}
+
+        payload.sort(key=lambda x: x["id"], reverse=True)
+
         for i, event in enumerate(payload):
             subtitle = f"## Event {event["id"]}: {event["title"]}"
             faction = f"> **Affected faction**\n- {event["race"]}"
-            planets = f"> **Remaining Involved Planets**\n{"\n".join(get_planets(payload["planets"]))}"
-            effects = f"> **Event Effects**\n{"\n".join(get_effects(payload["effects"]))}"
+            planets = f"> **Remaining Involved Planets**\n{"\n".join(self.PlanetNames(event["planets"], 0))}"
+            effects = f"> **Event Effects**\n{"\n".join(get_effects(event["effects"]))}"
             description = f"> **Description**\n{event["message"][language]}"
 
             events.append({"subtitle": subtitle, "faction": faction, "planets": planets, "effects": effects, "description": description})
@@ -95,25 +108,13 @@ class Schemas:
 
         return {"title": title, "events": events}
 
-    def HomeWorldSchema(self, payload: dict) -> dict:
-        def get_planets(payload: list[dict]) -> list[str]:
-            payload.sort(lambda x: x["name"])
-            planets = []
-
-            for planet in payload:
-                planets.append(f" - {planet["name"]}")
-
-            if len(planets) == 0:
-                planets.append(" - None!")
-
-            return planets
-        
-        def get_homeworlds(payload: dict) -> list:
+    def HomeWorldSchema(self, payload: list[dict]) -> dict:
+        def get_homeworlds(homeworlds_payload: dict) -> list:
             homeworlds = []
 
-            for homeworld in payload:
+            for homeworld in homeworlds_payload:
                 race = f"- Faction: {homeworld["race"]}"
-                planets = get_planets(homeworld["planets"])
+                planets = self.PlanetNames(homeworld["planets"], 1)
 
             homeworlds.append({"race": race, "planets": planets})
 
@@ -124,7 +125,7 @@ class Schemas:
 
         return {"subtitle": subtitle, "homeworlds": homeworlds}
 
-    def WarInfoSchema(self, payload: dict) -> dict:  
+    def WarInfoSchema(self, payload: dict) -> dict:
         title = f"# War Season {payload["war_id"]}"
         start_date = self.DiscordTimestamp(payload["start_date"])
         end_date = self.DiscordTimestamp(payload["end_date"])
@@ -172,7 +173,7 @@ class Cog(commands.Cog, name=name, description=""):
             case _:
                 await message.edit(content=f"Something went wrong. {" ".join(status)}", allowed_mentions=discord.AllowedMentions.all())
                 return None, False
-            
+
     @commands.group(aliases=["hd", "hd2", "helldivers"], invoke_without_command=True)
     async def helldivers2(self, ctx: commands.Context, arg_1: int | str | None = "all", arg_2: str | None = None):
         try:
