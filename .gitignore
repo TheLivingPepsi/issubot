@@ -6,3 +6,9 @@ ignore/
 requirements.txt
 quickstart.sh
 TODO.txt
+private/
+temp/
+.vscode/
+hd2_dumps/
+test.py
+secret.py

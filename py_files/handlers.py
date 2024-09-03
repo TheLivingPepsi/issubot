@@ -1,132 +1,142 @@
-import discord, json, random, requests, platform, roblox
+import discord, roblox
+import json, random, requests, platform
+import logging, logging.handlers as handlers
 import os, os.path as path
-import logging, logging.handlers
 import issutilities, issutilities.craft as craft, issutilities.directories as directories, issutilities.colors as COLORS
 import objects
 from discord.ext import commands
+from typing import Any, cast
 
 class startup_handler:
-    @classmethod
-    def __redirect_to_repo(self, given_path, settings_iter) -> str:
-        mainpypath = path.realpath(given_path)
-        pyfilesdir = path.dirname(mainpypath)
-        repodir = path.dirname(pyfilesdir)
-        json_file = path.join(repodir, f"json_files/bot_settings{settings_iter and f"_{settings_iter}" or ""}.json")
+    @staticmethod
+    def __get_bot_settings(given_path: str = __file__, settings_iter: int | None = None) -> str:
+        a = path.dirname(given_path)
+        json_file = path.join(a, "..", "json_files", f"bot_settings{f"_{settings_iter}" if settings_iter else ""}.json")
         if not os.path.exists(json_file):
             raise FileNotFoundError("Missing bot_settings.json file!")
         
         return json_file
     
     @classmethod
-    def get_startup_payload(self, args: list | None = None, given_path: str | None = __file__) -> tuple:
-        settings_iter = None
+    def get_startup_payload(cls, given_path: str = __file__, args: list[str] | None = []) -> tuple:
+        args = cast(list[str], args)
+
         try:
             settings_iter = int(args[1])
         except (ValueError, IndexError):
-            pass
+            settings_iter = None
 
-        bot_settings: dict = json.load(open(self.__redirect_to_repo(given_path, settings_iter)))
+        with open(cls.__get_bot_settings(given_path, settings_iter)) as f:
+            bot_settings = json.load(f)
+
         botname = bot_settings.pop("botname", "Error")
         is_test = bot_settings.pop("is_test", False)
 
-        token = botname == "issubot" and (
-            (is_test and os.getenv("TESSUBOT_TOKEN")) or os.getenv("ISSUBOT_TOKEN")
-            ) or botname == "djissu" and (
-            (is_test and os.getenv("DJTESSU_TOKEN")) or os.getenv("DJISSU_TOKEN")
-            ) or None
-        
+        token = (
+            os.getenv("TESSUBOT_TOKEN" if is_test else "ISSUBOT_TOKEN") 
+            if botname == "issubot" 
+            else os.getenv("DJTESSU_TOKEN" if is_test else "DJISSU_TOKEN") 
+            if botname == "djissu" 
+            else None
+        )
+
         if not token:
-            raise KeyError(f"Missing botname key in bot settings! Given name: {botname}")
+            raise KeyError(f"Missing token! The botname is incorrect or the token is not available. Given botname: {botname}")
 
         return bot_settings, token, botname
 
 class bot_handler:
-    @classmethod
-    def __get_owner_id(self) -> int:
-        if "OWNER_ID" in os.environ:
-            return int(os.environ["OWNER_ID"].replace('"', ""))
+    @staticmethod
+    def __get_owner_id() -> int | None:
+        return int(os.getenv("OWNER_ID", "0").replace('"', ""))
 
-    @classmethod
-    def __do_additional_setup(self, bot: objects.Bot | commands.Bot) -> None:
-        bot._BotBase__cogs = commands.core._CaseInsensitiveDict() # makes cog arguments case-insensitive
-
-        @bot.command(aliases=["reload", "reload_extensions"])
+    @staticmethod
+    def __setup_core(bot: objects.Bot) -> None:
+        @bot.command(aliases=["reload", "reload_cogs", "reload_extensions", "load", "load_cogs", "load_extensions", "unload", "unload_cogs", "unload_extensions"])
         @commands.is_owner()
-        async def reload_cogs(ctx):
-            """Reloads all extensions."""
-            await ctx.reply("Reloading extensions!")
-            await bot.reload_cogs()
+        async def extension(ctx: commands.Context, raw_action: str | None, *args):
+            extracted_action = None if not ctx.invoked_with else (ctx.invoked_with).split(sep="_")[0]
+            action = raw_action or extracted_action or "None"
+
+            extensions = list(args) if len(args) > 0 else None
+
+            try:
+                match action := action.lower():
+                    case "reload":
+                        await bot.reload_extensions(extensions)
+                    case "load":
+                        await bot.load_extensions(extensions)
+                    case "unload":
+                        await bot.unload_extensions(extensions)
+                    case _:
+                        await ctx.reply(f"Invalid action! Provided action: {action}")
+            except Exception as e:
+                await ctx.reply(f"Extension action {action} failed: {e}")
+                raise e
+            else:
+                await ctx.reply("Done!")
 
         @bot.command(aliases=["shutdown", "close"])
         @commands.is_owner()
-        async def restart(ctx: commands.Context):
+        async def restart(ctx):
             """Stops the bot. In a production environment, it should automatically reboot and come back online."""
             
-            bot.print_divider()
+            bot.__print_with_divider()
             print(f"{COLORS.BOLD}Shutting down {bot.user.name}...{COLORS.RESET}")
             await ctx.reply("Bot is shutting down...")
             await bot.change_presence(status=discord.Status.idle)
             await bot.close()
 
         @bot.command(aliases=["latency", "test"])
-        async def ping(ctx: commands.Context):
+        async def ping(ctx):
             """Displays the bot's latency/ping."""
             bot_latency = round(bot.latency * 1000, 2)
 
             await ctx.reply(f"🏓 Pong!\n- Bot latency: {bot_latency}ms")
 
     @classmethod
-    def create_bot(self, startup_payload: tuple, startup_notifs: list) -> objects.Bot | str:
+    def create_bot(cls, startup_payload: tuple[dict, str, str], startup_notifs: dict[str, str]) -> tuple[objects.Bot, str]:
         (bot_settings, token, botname) = startup_payload
 
-        help_command = commands.DefaultHelpCommand() # classes.HelpCommand()
-        activities = None
-
-        for payload in bot_settings["activities"]:
-            if activities is None:
-                activities = []
-            activities.append(craft.an.activity(payload))
+        help_command = objects.HelpCommand()
+        activities = [craft.an.activity(activity_payload) for activity_payload in bot_settings.get("activities", [])]
 
         bot = objects.Bot(
-            activity=activities and random.choice(activities) or None,
+            activity=random.choice(activities) if len(activities) > 0 else None,
             all_activities=activities,
-            allowed_mentions=craft.an.allowed_mentions(bot_settings["allowed_mentions"]),
-            command_prefix=craft.a.prefix(bot_settings["command_prefix"]),
-            description=bot_settings["description"],
+            allowed_mentions=craft.an.allowed_mentions(bot_settings.get("allowed_mentions")),
+            command_prefix=craft.a.prefix(bot_settings.get("command_prefix")),
+            description=bot_settings.get("description"),
             help_command=help_command,
-            intents=craft.an.intents(bot_settings["intents"]),
-            case_insensitive=bot_settings["case_insensitive"],
-            owner_id = self.__get_owner_id(),
+            intents=craft.an.intents(bot_settings.get("intents")),
+            case_insensitive=bot_settings.get("case_insensitive"),
+            owner_id = cls.__get_owner_id(),
             botname=botname,
             startup_notifs=startup_notifs
         )
 
-        self.__do_additional_setup(bot)
+        cls.__setup_core(bot)
 
         return bot, token
 
-    @classmethod
-    def run(self, bot: objects.Bot | commands.Bot, token: str) -> None:
+    @staticmethod
+    def run(bot: objects.Bot | commands.Bot, token: str) -> None:
         bot.run(token, log_handler=None)
+
 class logging_handler:
-    @classmethod
-    def create_logger(self, botname: str | None = "issubot") -> None:
+    @staticmethod
+    def create_logger(botname: str | None = "issubot") -> None:
         DIRS = botname == "issubot" and directories.ISSUBOT or directories.DJISSU
       
         logging_file_name = f"{DIRS.LOGGING}/discord.log"
 
-        if not path.exists(DIRS.LOGGING):
-            os.makedirs(DIRS.LOGGING, exist_ok=True)
-
-        if not path.exists(logging_file_name):
-            open(logging_file_name, mode="x").close()
-
+        open(logging_file_name, mode="a").close()
 
         logger = logging.getLogger('discord')
         logger.setLevel(logging.DEBUG)
         logging.getLogger('discord.http').setLevel(logging.INFO)
 
-        handler = logging.handlers.RotatingFileHandler(
+        handler = handlers.RotatingFileHandler(
             filename=logging_file_name,
             encoding='utf-8',
             maxBytes=32 * 1024 * 1024,  # 32 MiB
@@ -138,7 +148,7 @@ class logging_handler:
         logger.addHandler(handler)
 
 class version_handler:
-    comparisons = {
+    COMPARISONS = {
         "Python": {
             "Current": platform.python_version(),
             "Latest": {
@@ -169,27 +179,26 @@ class version_handler:
         }
     }
 
-    @classmethod
+    @staticmethod
     def __compare_versions(
-        self,
         current_version: str | None = "Unknown",
-        latest_version: str | None = "Unknown",
+        latest_version: str | Any = "Unknown",
     ) -> str:
         desc_string = None
 
         if latest_version == "Unknown":
             desc_string = "is potentially outdated, but the latest version could not be checked."
-        elif latest_version != current_version:
-            desc_string = "is outdated or was removed. Consider updating!"
-        else:
+        elif latest_version == current_version:
             desc_string = "is up-to-date!" 
-    
+        else:
+            desc_string = "is outdated or was removed. Consider updating!"
+
         return f"{desc_string}\n - **Current**: {current_version}\n - **Latest**: {latest_version}"
 
-    @classmethod
-    def __get_latest_version(self, url: str | None = None, source: str | None = None) -> str | None:
+    @staticmethod
+    def __get_latest_version(url: str | None = "", source: str | None = None) -> str | Exception | None:
         try: 
-            (request := requests.get(url)).raise_for_status()
+            (request := requests.get(str(url))).raise_for_status()
 
             json_data = request.json()
 
@@ -204,11 +213,13 @@ class version_handler:
             return e
 
     @classmethod
-    def get_version_payload(self) -> dict:
-        version_payload = {}
-
-        for name, payload in self.comparisons.items():
-            latest_version = self.__get_latest_version(**(payload["Latest"]))
-            version_payload[name] = self.__compare_versions(payload["Current"], latest_version)
+    def get_version_payload(cls) -> dict[str, str]:
+        version_payload = {
+            name: cls.__compare_versions(
+                payload["Current"], 
+                cls.__get_latest_version(**(payload["Latest"]))
+            ) 
+            for name, payload in cls.COMPARISONS.items()
+        }
 
         return version_payload

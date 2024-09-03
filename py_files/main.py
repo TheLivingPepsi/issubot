@@ -3,10 +3,10 @@ import issutilities.colors as COLORS
 from handlers import *
 
 
-def main(args: list | None = None) -> None:
+def main(args: list[str] | None = None) -> None:
     logging_handler.create_logger()
 
-    startup_payload = startup_handler.get_startup_payload(args)
+    startup_payload = startup_handler.get_startup_payload(args=args)
     version_payload = version_handler.get_version_payload()
 
     bot, token = bot_handler.create_bot(startup_payload, version_payload)

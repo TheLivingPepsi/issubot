@@ -2,8 +2,9 @@ import os
 import discord
 from discord.ext import commands
 import json
-from issutilities import DIRS, craft
+from issutilities import craft
 import random
+from typing import cast
 
 name = (os.path.basename(__file__)).replace(".py", "")
 
@@ -16,15 +17,11 @@ class Cog(
     def __init__(self, bot):
         self.bot = bot
         self.responses: dict = json.load(
-            open(f"{DIRS.JSON}/auto_responses.json", encoding="utf8")
+            open(f"{bot.DIRS.JSON}/auto_responses.json", encoding="utf8")
         )
-        self.punctuation = ".,:;/-@\"'!?\–\—•₽¥€¢£₩§”“„»«…¿¡\\’‘`$()_"
-
-    async def cog_load(self):
-        print(f"    > extensions.{name} ({self.__cog_name__}) has loaded!")
-
-    async def cog_unload(self) -> None:
-        print(f"    > extensions.{name} ({self.__cog_name__}) has unloaded.")
+        self.punctuation = ".,:;/-@\"'!?–—•₽¥€¢£₩§”“„»«…¿¡\\’‘`$()_"
+        self.craft_this = craft.with_HTTP()
+        self.craft_these = self.craft_this
 
     async def create_response(self, response: dict, message: discord.Message):
         response_settings = response["response"]
@@ -33,20 +30,22 @@ class Cog(
         images = response_settings["images"]
 
         if len(replies["content"]) > 0 and replies["content"][0] is not None:
-            content = random.choice(replies["content"])
+            content = cast(str, random.choice(replies["content"]))
         else:
             content = None
 
         if len(images) >= 1 and images[0] is not None:
             if len(images) == 1:
-                d_file = await craft.file(images[0])
+                d_file = await self.craft_this.discord_file(images[0])
+                d_files = None
             else:
-                d_files = await craft.files(images)
+                d_file = None
+                d_files = await self.craft_these.files(images)
         else:
             d_file = None
             d_files = None
 
-        await message.reply(content=content, file=d_file, files=d_files)
+        await message.reply(content=content, file=d_file, files=d_files)  # type: ignore
 
         if len(reactions["emojis"]) > 0 and reactions["emojis"][0] is not None:
             if reactions["random"]:
@@ -135,16 +134,14 @@ class Cog(
     @commands.is_owner()
     async def reload_responses(self, ctx):
         self.responses: dict = json.load(
-            open(f"{DIRS.JSON}/auto_responses.json", encoding="utf8")
+            open(f"{self.bot.DIRS.JSON}/auto_responses.json", encoding="utf8")
         )
         await ctx.reply("Reloaded!")
 
 
 async def setup(bot):
-    print(f'> Loading cog "extensions.{name}"...')
     await bot.add_cog(Cog(bot), override=True)
 
 
 async def teardown(bot):
-    print(f'> Unloading cog "extensions.{name}"...')
     await bot.remove_cog(name)
